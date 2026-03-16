@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1773668314413,
+      "tag": "0000_motionless_lady_ursula",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1773668743046,
+      "tag": "0001_steep_rumiko_fujikawa",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773673466675,
+      "tag": "0002_update_schema",
+      "breakpoints": true
+    }
+  ]
+}
