@@ -3,7 +3,7 @@ import { Package, ShoppingCart, AlertTriangle, Plus } from 'lucide-react';
 import { MetricCard } from './MetricCard';
 
 interface HeaderProps {
-  view: 'inventory' | 'sales';
+  view: 'inventory' | 'sales' | 'categories';
   totalItems: number;
   lowStockCount: number;
   totalSales: number;
@@ -11,18 +11,34 @@ interface HeaderProps {
 }
 
 export const Header = ({ view, totalItems, lowStockCount, totalSales, onAddItem }: HeaderProps) => {
+  const getTitle = () => {
+    switch (view) {
+      case 'inventory': return 'Inventory Management';
+      case 'sales': return 'Sales Tracking';
+      case 'categories': return 'Category Management';
+    }
+  };
+
+  const getButtonText = () => {
+    switch (view) {
+      case 'inventory': return 'Add Item';
+      case 'sales': return 'New Sale';
+      case 'categories': return 'Add Category';
+    }
+  };
+
   return (
     <header className="bg-white border-b border-gray-200 px-8 py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">
-          {view === 'inventory' ? 'Inventory Management' : 'Sales Tracking'}
+          {getTitle()}
         </h1>
         <button 
           onClick={onAddItem}
           className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium text-sm shadow-sm"
         >
           <Plus className="w-4 h-4" />
-          Add Item
+          {getButtonText()}
         </button>
       </div>
 
