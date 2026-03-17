@@ -1,3 +1,29 @@
+export interface Category {
+  id: string;
+  name: string;
+}
+
+export interface DbItem {
+  id: string;
+  name: string;
+  categoryId: string;
+  baseCost: string;
+  sku: string;
+  createdAt: Date;
+}
+
+export interface DbItemWithCategory extends DbItem {
+  category: Category;
+}
+
+export interface NewItem {
+  name: string;
+  category: string;
+  categoryId?: string;
+  stock: string;
+  price: string;
+}
+
 export interface InventoryItem {
   id: string;
   name: string;
@@ -38,4 +64,14 @@ export const MOCK_SALES: SaleTransaction[] = [
   { id: 's3', itemId: '2', itemName: 'Ergonomic Chair', category: 'Furniture', quantity: 2, totalPrice: 500, date: '2026-03-14' },
 ];
 
-export const CATEGORIES = ['Electronics', 'Furniture', 'Food', 'Office Supplies', 'Kitchen'];
+export const CATEGORIES = [
+  'Engine Components',
+  'Brake System',
+  'Fuel/Emission Systems',
+  'Electrical & Lighting',
+  'Suspension & Steering',
+  'Transmission/Clutch',
+  'Body & Exterior',
+  'Cooling System',
+  'Filters & Fluids',
+];

@@ -1,10 +1,10 @@
 import React from 'react';
-import { LayoutDashboard, ShoppingCart, Package, LogOut } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, List, LogOut } from 'lucide-react';
 import { cn } from '../app/lib/utils';
 
 interface SidebarProps {
-  view: 'inventory' | 'sales';
-  setView: (view: 'inventory' | 'sales') => void;
+  view: 'inventory' | 'sales' | 'categories';
+  setView: (view: 'inventory' | 'sales' | 'categories') => void;
 }
 
 export const Sidebar = ({ view, setView }: SidebarProps) => {
@@ -37,6 +37,16 @@ export const Sidebar = ({ view, setView }: SidebarProps) => {
         >
           <ShoppingCart className="w-5 h-5" />
           Sales
+        </button>
+        <button 
+          onClick={() => setView('categories')}
+          className={cn(
+            "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium",
+            view === 'categories' ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white hover:bg-slate-800"
+          )}
+        >
+          <List className="w-5 h-5" />
+          Categories
         </button>
       </nav>
 

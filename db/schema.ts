@@ -2,9 +2,13 @@ import { pgTable, uuid, text, integer, timestamp, decimal, pgEnum } from 'drizzl
 import { relations } from 'drizzle-orm';
 
 /**
- * Define a Category Enum for the items table.
+ * Categories Table: Stores all part categories.
  */
-export const categoryEnum = pgEnum('category', ['electronics', 'clothing', 'home', 'other']);
+export const categories = pgTable('categories', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull().unique(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
 
 /**
  * Items Table: Contains details about available products.
@@ -12,7 +16,7 @@ export const categoryEnum = pgEnum('category', ['electronics', 'clothing', 'home
 export const items = pgTable('items', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
-  category: categoryEnum('category').notNull(),
+  categoryId: uuid('category_id').notNull().references(() => categories.id, { onDelete: 'cascade' }),
   baseCost: decimal('base_cost', { precision: 12, scale: 2 }).notNull(),
   sku: text('sku').notNull().unique(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -31,8 +35,16 @@ export const sales = pgTable('sales', {
 /**
  * Relations API for fetching related data.
  */
-export const itemsRelations = relations(items, ({ many }) => ({
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  items: many(items),
+}));
+
+export const itemsRelations = relations(items, ({ many, one }) => ({
   sales: many(sales),
+  category: one(categories, {
+    fields: [items.categoryId],
+    references: [categories.id],
+  }),
 }));
 
 export const salesRelations = relations(sales, ({ one }) => ({

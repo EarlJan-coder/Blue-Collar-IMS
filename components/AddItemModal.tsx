@@ -1,28 +1,33 @@
 import React from 'react';
 import { X } from 'lucide-react';
-import { CATEGORIES } from '../app/types';
+import { Category, NewItem } from '../app/types';
 
 interface AddItemModalProps {
   isOpen: boolean;
   onClose: () => void;
-  newItem: {
-    name: string;
-    category: string;
-    stock: string;
-    price: string;
-  };
-  setNewItem: (item: any) => void;
+  newItem: NewItem;
+  setNewItem: (item: NewItem) => void;
   onSubmit: (e: React.FormEvent) => void;
+  categories: Category[];
+  isEditing?: boolean;
 }
 
-export const AddItemModal = ({ isOpen, onClose, newItem, setNewItem, onSubmit }: AddItemModalProps) => {
+export const AddItemModal = ({ 
+  isOpen, 
+  onClose, 
+  newItem, 
+  setNewItem, 
+  onSubmit, 
+  categories,
+  isEditing = false
+}: AddItemModalProps) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
         <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900">Add New Inventory Item</h3>
+          <h3 className="text-lg font-bold text-gray-900">{isEditing ? 'Edit Item' : 'Add New Inventory Item'}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="w-5 h-5" />
           </button>
@@ -37,24 +42,33 @@ export const AddItemModal = ({ isOpen, onClose, newItem, setNewItem, onSubmit }:
               value={newItem.name}
               onChange={e => setNewItem({...newItem, name: e.target.value})}
               placeholder="e.g. Wireless Mouse"
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900"
             />
           </div>
           
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Category</label>
             <select 
-              value={newItem.category}
-              onChange={e => setNewItem({...newItem, category: e.target.value})}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+              value={newItem.categoryId || ''}
+              onChange={e => {
+                const selectedCat = categories.find(c => c.id === e.target.value);
+                setNewItem({
+                  ...newItem, 
+                  categoryId: e.target.value,
+                  category: selectedCat ? selectedCat.name : ''
+                });
+              }}
+              required
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white text-slate-900"
             >
-              {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              <option value="" disabled>Select a category</option>
+              {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
             </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Initial Stock</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Stock</label>
               <input 
                 required
                 type="number" 
@@ -62,7 +76,7 @@ export const AddItemModal = ({ isOpen, onClose, newItem, setNewItem, onSubmit }:
                 value={newItem.stock}
                 onChange={e => setNewItem({...newItem, stock: e.target.value})}
                 placeholder="0"
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900"
               />
             </div>
             <div>
@@ -75,7 +89,7 @@ export const AddItemModal = ({ isOpen, onClose, newItem, setNewItem, onSubmit }:
                 value={newItem.price}
                 onChange={e => setNewItem({...newItem, price: e.target.value})}
                 placeholder="0.00"
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900"
               />
             </div>
           </div>
@@ -92,7 +106,7 @@ export const AddItemModal = ({ isOpen, onClose, newItem, setNewItem, onSubmit }:
               type="submit"
               className="flex-1 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
             >
-              Create SKU & Add
+              {isEditing ? 'Update Item' : 'Create SKU & Add'}
             </button>
           </div>
         </form>

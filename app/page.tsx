@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   InventoryItem, 
   SaleTransaction, 
-  MOCK_ITEMS, 
   MOCK_SALES, 
-  CATEGORIES 
+  Category,
+  NewItem
 } from './types';
 
 // --- Imported Components ---
@@ -15,14 +15,27 @@ import { Header } from '../components/Header';
 import { Controls } from '../components/Controls';
 import { InventoryTable } from '../components/InventoryTable';
 import { SalesTable } from '../components/SalesTable';
+import { CategoryTable } from '../components/CategoryTable';
 import { Pagination } from '../components/Pagination';
 import { AddItemModal } from '../components/AddItemModal';
+import { AddCategoryModal } from '../components/AddCategoryModal';
+
+// --- Actions ---
+import { getItems, createItem, updateItem, deleteItem } from './actions/items';
+import { getCategories, createCategory, updateCategory, deleteCategory } from './actions/categories';
 
 export default function IMSPage() {
-  const [view, setView] = useState<'inventory' | 'sales'>('inventory');
-  const [items, setItems] = useState<InventoryItem[]>(MOCK_ITEMS);
+  const [view, setView] = useState<'inventory' | 'sales' | 'categories'>('inventory');
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [sales] = useState<SaleTransaction[]>(MOCK_SALES);
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -30,13 +43,37 @@ export default function IMSPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Form state for new item
-  const [newItem, setNewItem] = useState({
+  // Form state for new/edit item
+  const [newItem, setNewItem] = useState<NewItem>({
     name: '',
-    category: CATEGORIES[0],
+    category: '',
+    categoryId: '',
     stock: '',
     price: ''
   });
+
+  // Fetch initial data
+  useEffect(() => {
+    async function fetchData() {
+      const [dbItems, dbCategories] = await Promise.all([
+        getItems(),
+        getCategories()
+      ]);
+      
+      const mappedItems: InventoryItem[] = dbItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        category: item.category.name,
+        sku: item.sku,
+        stockQuantity: 10, // Defaulting as schema doesn't have stock yet, but UI expects it
+        unitPrice: parseFloat(item.baseCost)
+      }));
+
+      setItems(mappedItems);
+      setCategories(dbCategories);
+    }
+    fetchData();
+  }, []);
 
   // Derived Metrics
   const totalItems = items.length;
@@ -69,25 +106,133 @@ export default function IMSPage() {
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
   // Actions
-  const handleAddItem = (e: React.FormEvent) => {
+  const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    const catCode = newItem.category.slice(0, 4).toUpperCase();
-    const nameCode = newItem.name.slice(0, 3).toUpperCase();
-    const random = Math.floor(1000 + Math.random() * 9000);
-    const sku = `${catCode}-${nameCode}-${random}`;
+    
+    if (isEditing && editingItemId) {
+      await updateItem(editingItemId, {
+        name: newItem.name,
+        categoryId: newItem.categoryId,
+        baseCost: newItem.price,
+      });
+    } else {
+      const catCode = newItem.category.slice(0, 4).toUpperCase();
+      const nameCode = newItem.name.slice(0, 3).toUpperCase();
+      const random = Math.floor(1000 + Math.random() * 9000);
+      const sku = `${catCode}-${nameCode}-${random}`;
 
-    const item: InventoryItem = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: newItem.name,
-      category: newItem.category,
-      sku,
-      stockQuantity: parseInt(newItem.stock) || 0,
-      unitPrice: parseFloat(newItem.price) || 0
-    };
+      await createItem({
+        name: newItem.name,
+        categoryId: newItem.categoryId!,
+        baseCost: newItem.price,
+        sku,
+      });
+    }
 
-    setItems([...items, item]);
+    // Refresh items
+    const dbItems = await getItems();
+    const mappedItems: InventoryItem[] = dbItems.map(item => ({
+      id: item.id,
+      name: item.name,
+      category: item.category.name,
+      sku: item.sku,
+      stockQuantity: 10,
+      unitPrice: parseFloat(item.baseCost)
+    }));
+    setItems(mappedItems);
+
     setIsModalOpen(false);
-    setNewItem({ name: '', category: CATEGORIES[0], stock: '', price: '' });
+    setIsEditing(false);
+    setEditingItemId(null);
+    setNewItem({ name: '', category: '', categoryId: '', stock: '', price: '' });
+  };
+
+  const handleEditClick = (item: InventoryItem) => {
+    const category = categories.find(c => c.name === item.category);
+    setNewItem({
+      name: item.name,
+      category: item.category,
+      categoryId: category?.id || '',
+      stock: item.stockQuantity.toString(),
+      price: item.unitPrice.toString()
+    });
+    setEditingItemId(item.id);
+    setIsEditing(true);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteItem = async (id: string) => {
+    if (confirm('Are you sure you want to delete this item?')) {
+      await deleteItem(id);
+      const dbItems = await getItems();
+      const mappedItems: InventoryItem[] = dbItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        category: item.category.name,
+        sku: item.sku,
+        stockQuantity: 10,
+        unitPrice: parseFloat(item.baseCost)
+      }));
+      setItems(mappedItems);
+    }
+  };
+
+  // Category Actions
+  const handleAddCategorySubmit = async (name: string, id?: string) => {
+    if (id) {
+      await updateCategory(id, name);
+    } else {
+      await createCategory(name);
+    }
+    
+    // Refresh categories
+    const dbCategories = await getCategories();
+    setCategories(dbCategories);
+    
+    setIsCategoryModalOpen(false);
+    setEditingCategory(null);
+  };
+
+  const handleEditCategoryClick = (category: Category) => {
+    setEditingCategory(category);
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (confirm('Are you sure you want to delete this category? All items in this category will also be deleted.')) {
+      await deleteCategory(id);
+      
+      // Refresh items and categories
+      const [dbItems, dbCategories] = await Promise.all([
+        getItems(),
+        getCategories()
+      ]);
+      
+      const mappedItems: InventoryItem[] = dbItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        category: item.category.name,
+        sku: item.sku,
+        stockQuantity: 10,
+        unitPrice: parseFloat(item.baseCost)
+      }));
+
+      setItems(mappedItems);
+      setCategories(dbCategories);
+    }
+  };
+
+  const handleHeaderAction = () => {
+    if (view === 'inventory') {
+      setIsEditing(false);
+      setNewItem({ name: '', category: '', categoryId: '', stock: '', price: '' });
+      setIsModalOpen(true);
+    } else if (view === 'categories') {
+      setEditingCategory(null);
+      setIsCategoryModalOpen(true);
+    } else if (view === 'sales') {
+      alert('New Sale functionality coming soon!');
+    }
   };
 
   return (
@@ -100,35 +245,47 @@ export default function IMSPage() {
           totalItems={totalItems} 
           lowStockCount={lowStockCount} 
           totalSales={totalSales} 
-          onAddItem={() => setIsModalOpen(true)} 
+          onAddItem={handleHeaderAction} 
         />
 
         <div className="p-8 flex-1 overflow-auto">
-          <Controls 
-            searchTerm={searchTerm} 
-            setSearchTerm={setSearchTerm} 
-            categoryFilter={categoryFilter} 
-            setCategoryFilter={(cat) => {
-              setCategoryFilter(cat);
-              setCurrentPage(1);
-            }} 
-          />
+          {view !== 'categories' && (
+            <Controls 
+              searchTerm={searchTerm} 
+              setSearchTerm={setSearchTerm} 
+              categoryFilter={categoryFilter} 
+              setCategoryFilter={(cat) => {
+                setCategoryFilter(cat);
+                setCurrentPage(1);
+              }} 
+              categories={categories}
+            />
+          )}
 
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             {view === 'inventory' ? (
-              <InventoryTable items={paginatedItems} />
+              <>
+                <InventoryTable 
+                  items={paginatedItems} 
+                  onEdit={handleEditClick}
+                  onDelete={handleDeleteItem}
+                />
+                <Pagination 
+                  currentPage={currentPage} 
+                  totalPages={totalPages} 
+                  itemsPerPage={itemsPerPage} 
+                  totalFilteredItems={filteredItems.length} 
+                  setCurrentPage={setCurrentPage} 
+                />
+              </>
+            ) : view === 'categories' ? (
+              <CategoryTable 
+                categories={categories}
+                onEdit={handleEditCategoryClick}
+                onDelete={handleDeleteCategory}
+              />
             ) : (
               <SalesTable sales={filteredSales} />
-            )}
-
-            {view === 'inventory' && (
-              <Pagination 
-                currentPage={currentPage} 
-                totalPages={totalPages} 
-                itemsPerPage={itemsPerPage} 
-                totalFilteredItems={filteredItems.length} 
-                setCurrentPage={setCurrentPage} 
-              />
             )}
           </div>
         </div>
@@ -139,7 +296,19 @@ export default function IMSPage() {
         onClose={() => setIsModalOpen(false)} 
         newItem={newItem} 
         setNewItem={setNewItem} 
-        onSubmit={handleAddItem} 
+        onSubmit={handleAddItem}
+        categories={categories}
+        isEditing={isEditing}
+      />
+
+      <AddCategoryModal 
+        isOpen={isCategoryModalOpen}
+        onClose={() => {
+          setIsCategoryModalOpen(false);
+          setEditingCategory(null);
+        }}
+        onSubmit={handleAddCategorySubmit}
+        category={editingCategory}
       />
     </div>
   );
