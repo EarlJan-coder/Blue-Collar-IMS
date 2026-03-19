@@ -18,6 +18,8 @@ export const items = pgTable('items', {
   name: text('name').notNull(),
   categoryId: uuid('category_id').notNull().references(() => categories.id, { onDelete: 'cascade' }),
   baseCost: decimal('base_cost', { precision: 12, scale: 2 }).notNull(),
+  sellingPrice: decimal('selling_price', { precision: 12, scale: 2 }).notNull().default('0.00'),
+  stockQuantity: integer('stock_quantity').notNull().default(0),
   sku: text('sku').notNull().unique(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
@@ -29,7 +31,9 @@ export const sales = pgTable('sales', {
   id: uuid('id').primaryKey().defaultRandom(),
   itemId: uuid('item_id').notNull().references(() => items.id, { onDelete: 'cascade' }),
   quantitySold: integer('quantity_sold').notNull(),
+  totalPrice: decimal('total_price', { precision: 12, scale: 2 }).notNull(),
   totalProfit: decimal('total_profit', { precision: 12, scale: 2 }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
 /**

@@ -4,9 +4,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { 
   InventoryItem, 
   SaleTransaction, 
-  MOCK_SALES, 
   Category,
-  NewItem
+  NewItem,
+  NewSale
 } from './types';
 
 // --- Imported Components ---
@@ -19,19 +19,22 @@ import { CategoryTable } from '../components/CategoryTable';
 import { Pagination } from '../components/Pagination';
 import { AddItemModal } from '../components/AddItemModal';
 import { AddCategoryModal } from '../components/AddCategoryModal';
+import { AddSaleModal } from '../components/AddSaleModal';
 
 // --- Actions ---
 import { getItems, createItem, updateItem, deleteItem } from './actions/items';
 import { getCategories, createCategory, updateCategory, deleteCategory } from './actions/categories';
+import { getSales, createSale } from './actions/sales';
 
 export default function IMSPage() {
   const [view, setView] = useState<'inventory' | 'sales' | 'categories'>('inventory');
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [sales] = useState<SaleTransaction[]>(MOCK_SALES);
+  const [sales, setSales] = useState<SaleTransaction[]>([]);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [isSaleModalOpen, setIsSaleModalOpen] = useState(false);
   
   const [isEditing, setIsEditing] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
@@ -52,12 +55,18 @@ export default function IMSPage() {
     price: ''
   });
 
+  const [newSale, setNewSale] = useState<NewSale>({
+    itemId: '',
+    quantity: '1'
+  });
+
   // Fetch initial data
   useEffect(() => {
     async function fetchData() {
-      const [dbItems, dbCategories] = await Promise.all([
+      const [dbItems, dbCategories, dbSales] = await Promise.all([
         getItems(),
-        getCategories()
+        getCategories(),
+        getSales()
       ]);
       
       const mappedItems: InventoryItem[] = dbItems.map(item => ({
@@ -65,12 +74,23 @@ export default function IMSPage() {
         name: item.name,
         category: item.category.name,
         sku: item.sku,
-        stockQuantity: 10, // Defaulting as schema doesn't have stock yet, but UI expects it
-        unitPrice: parseFloat(item.baseCost)
+        stockQuantity: item.stockQuantity,
+        unitPrice: parseFloat(item.sellingPrice)
+      }));
+
+      const mappedSales: SaleTransaction[] = dbSales.map(sale => ({
+        id: sale.id,
+        itemId: sale.itemId,
+        itemName: sale.item.name,
+        category: sale.item.category.name,
+        quantity: sale.quantitySold,
+        totalPrice: parseFloat(sale.totalPrice),
+        date: new Date(sale.createdAt).toLocaleDateString()
       }));
 
       setItems(mappedItems);
       setCategories(dbCategories);
+      setSales(mappedSales);
     }
     fetchData();
   }, []);
@@ -78,7 +98,7 @@ export default function IMSPage() {
   // Derived Metrics
   const totalItems = items.length;
   const lowStockCount = items.filter(i => i.stockQuantity < 10).length;
-  const totalSales = sales.reduce((sum, s) => sum + s.totalPrice, 0);
+  const totalSalesAmount = sales.reduce((sum, s) => sum + s.totalPrice, 0);
 
   // Filtered & Paginated Data
   const filteredItems = useMemo(() => {
@@ -113,7 +133,9 @@ export default function IMSPage() {
       await updateItem(editingItemId, {
         name: newItem.name,
         categoryId: newItem.categoryId,
-        baseCost: newItem.price,
+        baseCost: newItem.price, // Assuming cost is same as price for now or needs another field
+        sellingPrice: newItem.price,
+        stockQuantity: parseInt(newItem.stock || '0'),
       });
     } else {
       const catCode = newItem.category.slice(0, 4).toUpperCase();
@@ -124,7 +146,9 @@ export default function IMSPage() {
       await createItem({
         name: newItem.name,
         categoryId: newItem.categoryId!,
-        baseCost: newItem.price,
+        baseCost: (parseFloat(newItem.price) * 0.7).toFixed(2), // Mock base cost as 70% of selling price
+        sellingPrice: newItem.price,
+        stockQuantity: parseInt(newItem.stock || '0'),
         sku,
       });
     }
@@ -136,8 +160,8 @@ export default function IMSPage() {
       name: item.name,
       category: item.category.name,
       sku: item.sku,
-      stockQuantity: 10,
-      unitPrice: parseFloat(item.baseCost)
+      stockQuantity: item.stockQuantity,
+      unitPrice: parseFloat(item.sellingPrice)
     }));
     setItems(mappedItems);
 
@@ -170,8 +194,8 @@ export default function IMSPage() {
         name: item.name,
         category: item.category.name,
         sku: item.sku,
-        stockQuantity: 10,
-        unitPrice: parseFloat(item.baseCost)
+        stockQuantity: item.stockQuantity,
+        unitPrice: parseFloat(item.sellingPrice)
       }));
       setItems(mappedItems);
     }
@@ -191,6 +215,43 @@ export default function IMSPage() {
     
     setIsCategoryModalOpen(false);
     setEditingCategory(null);
+  };
+
+  const handleAddSale = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+        await createSale({
+            itemId: newSale.itemId,
+            quantitySold: parseInt(newSale.quantity)
+        });
+
+        // Refresh items and sales
+        const [dbItems, dbSales] = await Promise.all([getItems(), getSales()]);
+        
+        setItems(dbItems.map(item => ({
+            id: item.id,
+            name: item.name,
+            category: item.category.name,
+            sku: item.sku,
+            stockQuantity: item.stockQuantity,
+            unitPrice: parseFloat(item.sellingPrice)
+        })));
+
+        setSales(dbSales.map(sale => ({
+            id: sale.id,
+            itemId: sale.itemId,
+            itemName: sale.item.name,
+            category: sale.item.category.name,
+            quantity: sale.quantitySold,
+            totalPrice: parseFloat(sale.totalPrice),
+            date: new Date(sale.createdAt).toLocaleDateString()
+        })));
+
+        setIsSaleModalOpen(false);
+        setNewSale({ itemId: '', quantity: '1' });
+    } catch (error) {
+        alert(error instanceof Error ? error.message : 'Failed to record sale');
+    }
   };
 
   const handleEditCategoryClick = (category: Category) => {
@@ -213,8 +274,8 @@ export default function IMSPage() {
         name: item.name,
         category: item.category.name,
         sku: item.sku,
-        stockQuantity: 10,
-        unitPrice: parseFloat(item.baseCost)
+        stockQuantity: item.stockQuantity,
+        unitPrice: parseFloat(item.sellingPrice)
       }));
 
       setItems(mappedItems);
@@ -231,7 +292,7 @@ export default function IMSPage() {
       setEditingCategory(null);
       setIsCategoryModalOpen(true);
     } else if (view === 'sales') {
-      alert('New Sale functionality coming soon!');
+      setIsSaleModalOpen(true);
     }
   };
 
@@ -244,7 +305,7 @@ export default function IMSPage() {
           view={view} 
           totalItems={totalItems} 
           lowStockCount={lowStockCount} 
-          totalSales={totalSales} 
+          totalSales={totalSalesAmount} 
           onAddItem={handleHeaderAction} 
         />
 
@@ -309,6 +370,15 @@ export default function IMSPage() {
         }}
         onSubmit={handleAddCategorySubmit}
         category={editingCategory}
+      />
+
+      <AddSaleModal 
+        isOpen={isSaleModalOpen}
+        onClose={() => setIsSaleModalOpen(false)}
+        newSale={newSale}
+        setNewSale={setNewSale}
+        onSubmit={handleAddSale}
+        items={items}
       />
     </div>
   );
