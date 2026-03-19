@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '../../db/db';
-import { items } from '../../db/schema';
+import { items, categories } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { DbItemWithCategory } from '../types';
@@ -13,6 +13,8 @@ export async function createItem(data: {
   name: string;
   categoryId: string;
   baseCost: string;
+  sellingPrice: string;
+  stockQuantity: number;
   sku: string;
 }) {
   const result = await db.insert(items).values(data).returning();
@@ -25,11 +27,36 @@ export async function createItem(data: {
  * Useful for displaying items on the inventory table.
  */
 export async function getItems(): Promise<DbItemWithCategory[]> {
-  return db.query.items.findMany({
-    with: {
-      category: true,
+  const result = await db
+    .select({
+      id: items.id,
+      name: items.name,
+      categoryId: items.categoryId,
+      baseCost: items.baseCost,
+      sellingPrice: items.sellingPrice,
+      stockQuantity: items.stockQuantity,
+      sku: items.sku,
+      createdAt: items.createdAt,
+      category_id: categories.id,
+      category_name: categories.name,
+    })
+    .from(items)
+    .leftJoin(categories, eq(items.categoryId, categories.id));
+
+  return result.map(row => ({
+    id: row.id,
+    name: row.name,
+    categoryId: row.categoryId,
+    baseCost: row.baseCost,
+    sellingPrice: row.sellingPrice,
+    stockQuantity: row.stockQuantity,
+    sku: row.sku,
+    createdAt: row.createdAt,
+    category: {
+      id: row.category_id as string,
+      name: row.category_name as string,
     },
-  }) as unknown as Promise<DbItemWithCategory[]>;
+  })) as DbItemWithCategory[];
 }
 
 /**
@@ -39,6 +66,8 @@ export async function updateItem(id: string, data: Partial<{
   name: string;
   categoryId: string;
   baseCost: string;
+  sellingPrice: string;
+  stockQuantity: number;
   sku: string;
 }>) {
   const result = await db.update(items).set(data).where(eq(items.id, id)).returning();
