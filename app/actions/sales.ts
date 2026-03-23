@@ -79,21 +79,69 @@ export async function createSale(data: {
   const totalPrice = (parseFloat(item.sellingPrice) * data.quantitySold).toFixed(2);
   const totalProfit = ((parseFloat(item.sellingPrice) - parseFloat(item.baseCost)) * data.quantitySold).toFixed(2);
 
-  return await db.transaction(async (tx) => {
+  try {
     // 1. Record the sale
-    const [sale] = await tx.insert(sales).values({
+    const result = await db.insert(sales).values({
       itemId: data.itemId,
       quantitySold: data.quantitySold,
       totalPrice,
       totalProfit,
     }).returning();
 
+    const sale = result[0];
+
     // 2. Update item stock
-    await tx.update(items)
+    await db.update(items)
       .set({ stockQuantity: item.stockQuantity - data.quantitySold })
       .where(eq(items.id, data.itemId));
 
     revalidatePath('/');
     return sale;
-  });
+  } catch (error) {
+    throw new Error(`Failed to create sale: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Deletes a sale and restores the item stock.
+ */
+export async function deleteSale(saleId: string) {
+  try {
+    // First, fetch the sale details
+    const saleResult = await db
+      .select({
+        id: sales.id,
+        itemId: sales.itemId,
+        quantitySold: sales.quantitySold,
+      })
+      .from(sales)
+      .where(eq(sales.id, saleId));
+
+    if (saleResult.length === 0) {
+      throw new Error('Sale not found');
+    }
+
+    const sale = saleResult[0];
+
+    // Fetch the item to get current stock
+    const item = await db.query.items.findFirst({
+      where: eq(items.id, sale.itemId),
+    });
+
+    if (!item) {
+      throw new Error('Item not found');
+    }
+
+    // 1. Delete the sale record
+    await db.delete(sales).where(eq(sales.id, saleId));
+
+    // 2. Restore item stock
+    await db.update(items)
+      .set({ stockQuantity: item.stockQuantity + sale.quantitySold })
+      .where(eq(items.id, sale.itemId));
+
+    revalidatePath('/');
+  } catch (error) {
+    throw new Error(`Failed to delete sale: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
