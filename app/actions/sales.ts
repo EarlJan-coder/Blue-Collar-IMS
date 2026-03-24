@@ -2,14 +2,22 @@
 
 import { db } from '../../db/db';
 import { sales, items, categories } from '../../db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { DbSaleWithItem } from '../types';
+import { getServerSession, type Session } from 'next-auth';
+import { authOptions } from '@/auth';
 
 /**
- * Fetches all sales with item and category details.
+ * Fetches all sales with item and category details for the authenticated user.
  */
 export async function getSales(): Promise<DbSaleWithItem[]> {
+  const session = (await getServerSession(authOptions)) as Session | null;
+  const userId = session?.user?.id;
+  if (!userId) {
+    throw new Error('Unauthorized');
+  }
+
   const result = await db
     .select({
       id: sales.id,
@@ -29,8 +37,9 @@ export async function getSales(): Promise<DbSaleWithItem[]> {
       categoryName: categories.name,
     })
     .from(sales)
-    .innerJoin(items, eq(sales.itemId, items.id))
-    .leftJoin(categories, eq(items.categoryId, categories.id))
+    .innerJoin(items, and(eq(sales.itemId, items.id), eq(sales.userId, items.userId)))
+    .leftJoin(categories, and(eq(items.categoryId, categories.id), eq(items.userId, categories.userId)))
+    .where(eq(sales.userId, userId))
     .orderBy(desc(sales.createdAt));
 
   return result.map(row => ({
@@ -58,14 +67,20 @@ export async function getSales(): Promise<DbSaleWithItem[]> {
 }
 
 /**
- * Records a new sale and updates inventory.
+ * Records a new sale and updates inventory for the authenticated user.
  */
 export async function createSale(data: {
   itemId: string;
   quantitySold: number;
 }) {
+  const session = (await getServerSession(authOptions)) as Session | null;
+  const userId = session?.user?.id;
+  if (!userId) {
+    throw new Error('Unauthorized');
+  }
+
   const item = await db.query.items.findFirst({
-    where: eq(items.id, data.itemId),
+    where: and(eq(items.id, data.itemId), eq(items.userId, userId)),
   });
 
   if (!item) {
@@ -86,6 +101,7 @@ export async function createSale(data: {
       quantitySold: data.quantitySold,
       totalPrice,
       totalProfit,
+      userId,
     }).returning();
 
     const sale = result[0];
@@ -93,7 +109,7 @@ export async function createSale(data: {
     // 2. Update item stock
     await db.update(items)
       .set({ stockQuantity: item.stockQuantity - data.quantitySold })
-      .where(eq(items.id, data.itemId));
+      .where(and(eq(items.id, data.itemId), eq(items.userId, userId)));
 
     revalidatePath('/');
     return sale;

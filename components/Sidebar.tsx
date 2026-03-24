@@ -1,6 +1,7 @@
 import React from 'react';
 import { LayoutDashboard, ShoppingCart, Package, List, LogOut } from 'lucide-react';
 import { cn } from '../app/lib/utils';
+import { signOut } from 'next-auth/react';
 
 interface SidebarProps {
   view: 'inventory' | 'sales' | 'categories';
@@ -51,7 +52,10 @@ export const Sidebar = ({ view, setView }: SidebarProps) => {
       </nav>
 
       <div className="p-4 border-t border-slate-800">
-        <button className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white transition-colors text-sm">
+        <button 
+          onClick={() => signOut()}
+          className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white transition-colors text-sm"
+        >
           <LogOut className="w-5 h-5" />
           Sign Out
         </button>

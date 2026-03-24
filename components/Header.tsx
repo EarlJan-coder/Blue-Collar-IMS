@@ -1,6 +1,7 @@
 import React from 'react';
-import { Package, ShoppingCart, AlertTriangle, Plus } from 'lucide-react';
+import { Package, ShoppingCart, AlertTriangle, Plus, LogOut } from 'lucide-react';
 import { MetricCard } from './MetricCard';
+import { signOut } from 'next-auth/react';
 
 interface HeaderProps {
   view: 'inventory' | 'sales' | 'categories';
