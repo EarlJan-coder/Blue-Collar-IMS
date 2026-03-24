@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { useSession, signIn } from 'next-auth/react';
 import { 
   InventoryItem, 
   SaleTransaction, 
@@ -60,8 +61,12 @@ export default function IMSPage() {
     quantity: '1'
   });
 
-  // Fetch initial data
+  const { data: session, status } = useSession();
+
+  // Fetch initial data for signed-in users
   useEffect(() => {
+    if (status !== 'authenticated') return;
+
     async function fetchData() {
       const [dbItems, dbCategories, dbSales] = await Promise.all([
         getItems(),
@@ -93,7 +98,7 @@ export default function IMSPage() {
       setSales(mappedSales);
     }
     fetchData();
-  }, []);
+  }, [status]);
 
   // Derived Metrics
   const totalItems = items.length;
@@ -124,6 +129,26 @@ export default function IMSPage() {
   }, [filteredItems, currentPage]);
 
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
+  if (status === 'loading') {
+    return <div className="p-8">Loading...</div>;
+  }
+
+  if (!session) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">Please sign in</h1>
+          <button
+            onClick={() => signIn('google', { callbackUrl: '/' })}
+            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded"
+          >
+            Sign in with Google
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Actions
   const handleAddItem = async (e: React.FormEvent) => {

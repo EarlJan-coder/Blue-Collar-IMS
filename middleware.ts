@@ -1,0 +1,19 @@
+import { withAuth } from 'next-auth/middleware';
+
+export default withAuth(
+  function middleware(req) {
+    // Custom middleware logic if needed
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token,
+    },
+    pages: {
+      signIn: '/auth/signin',
+    },
+  }
+);
+
+export const config = {
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|auth).*)'],
+};

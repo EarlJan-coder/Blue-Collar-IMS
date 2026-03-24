@@ -2,9 +2,11 @@
 
 import { db } from '../../db/db';
 import { items, categories } from '../../db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { DbItemWithCategory } from '../types';
+import { getServerSession, type Session } from 'next-auth';
+import { authOptions } from '@/auth';
 
 /**
  * Creates a new item in the database.
@@ -17,16 +19,32 @@ export async function createItem(data: {
   stockQuantity: number;
   sku: string;
 }) {
-  const result = await db.insert(items).values(data).returning();
+  const session = (await getServerSession(authOptions)) as Session | null;
+  const userId = session?.user?.id;
+  if (!userId) {
+    throw new Error('Unauthorized');
+  }
+
+  const result = await db.insert(items).values({
+    ...data,
+    userId,
+  }).returning();
   revalidatePath('/'); // Revalidate the home page to reflect the new item
   return result[0];
 }
 
 /**
- * Fetches all items with their category details.
+ * Fetches all items with their category details for the authenticated user.
  * Useful for displaying items on the inventory table.
  */
 export async function getItems(): Promise<DbItemWithCategory[]> {
+  const session = (await getServerSession(authOptions)) as Session | null;
+  const userId = session?.user?.id;
+  if (!userId) {
+    // If there is no active session, return empty list so client can handle signin state.
+    return [];
+  }
+
   const result = await db
     .select({
       id: items.id,
@@ -41,7 +59,8 @@ export async function getItems(): Promise<DbItemWithCategory[]> {
       category_name: categories.name,
     })
     .from(items)
-    .leftJoin(categories, eq(items.categoryId, categories.id));
+    .leftJoin(categories, and(eq(items.categoryId, categories.id), eq(items.userId, categories.userId)))
+    .where(eq(items.userId, userId));
 
   return result.map(row => ({
     id: row.id,
@@ -70,7 +89,13 @@ export async function updateItem(id: string, data: Partial<{
   stockQuantity: number;
   sku: string;
 }>) {
-  const result = await db.update(items).set(data).where(eq(items.id, id)).returning();
+  const session = (await getServerSession(authOptions)) as Session | null;
+  const userId = session?.user?.id;
+  if (!userId) {
+    throw new Error('Unauthorized');
+  }
+
+  const result = await db.update(items).set(data).where(and(eq(items.id, id), eq(items.userId, userId))).returning();
   revalidatePath('/');
   return result[0];
 }
@@ -79,7 +104,13 @@ export async function updateItem(id: string, data: Partial<{
  * Deletes a specific item from the database.
  */
 export async function deleteItem(id: string) {
-  const result = await db.delete(items).where(eq(items.id, id)).returning();
+  const session = (await getServerSession(authOptions)) as Session | null;
+  const userId = session?.user?.id;
+  if (!userId) {
+    throw new Error('Unauthorized');
+  }
+
+  const result = await db.delete(items).where(and(eq(items.id, id), eq(items.userId, userId))).returning();
   revalidatePath('/');
   return result[0];
 }
