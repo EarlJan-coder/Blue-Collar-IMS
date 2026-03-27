@@ -1,7 +1,6 @@
 import React from 'react';
-import { Package, ShoppingCart, AlertTriangle, Plus, LogOut } from 'lucide-react';
+import { Package, ShoppingCart, AlertTriangle, Plus } from 'lucide-react';
 import { MetricCard } from './MetricCard';
-import { signOut } from 'next-auth/react';
 
 interface HeaderProps {
   view: 'inventory' | 'sales' | 'categories';
@@ -29,24 +28,22 @@ export const Header = ({ view, totalItems, lowStockCount, totalSales, onAddItem 
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 px-8 py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {getTitle()}
-        </h1>
-        <button 
+    <header className="bg-card border-b border-border px-6 py-5 md:px-8 md:py-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+        <h1 className="text-2xl font-bold text-foreground">{getTitle()}</h1>
+        <button
           onClick={onAddItem}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium text-sm shadow-sm"
+          className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
         >
           <Plus className="w-4 h-4" />
           {getButtonText()}
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <MetricCard title="Total Items" value={totalItems} icon={Package} color="bg-blue-500" />
-        <MetricCard title="Low Stock Alerts" value={lowStockCount} icon={AlertTriangle} color="bg-amber-500" />
-        <MetricCard title="Total Sales" value={`₱${totalSales.toLocaleString()}`} icon={ShoppingCart} color="bg-emerald-500" />
+      <div className="grid gap-4 sm:grid-cols-3">
+        <MetricCard title="Total Items" value={totalItems} icon={Package} color="bg-chart-1" />
+        <MetricCard title="Low Stock Alerts" value={lowStockCount} icon={AlertTriangle} color="bg-accent" />
+        <MetricCard title="Total Sales" value={`₱${totalSales.toLocaleString()}`} icon={ShoppingCart} color="bg-secondary" />
       </div>
     </header>
   );
