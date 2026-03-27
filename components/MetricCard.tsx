@@ -10,13 +10,13 @@ interface MetricCardProps {
 }
 
 export const MetricCard = ({ title, value, icon: Icon, color }: MetricCardProps) => (
-  <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
-    <div className={cn("p-3 rounded-lg", color)}>
-      <Icon className="w-6 h-6 text-white" />
+  <div className="bg-card p-6 rounded-2xl border border-border shadow-sm flex items-center gap-4">
+    <div className={cn('p-3 rounded-2xl', color)}>
+      <Icon className="w-6 h-6 text-primary-foreground" />
     </div>
     <div>
-      <p className="text-sm font-medium text-gray-500">{title}</p>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
+      <p className="text-sm font-medium text-muted-foreground">{title}</p>
+      <p className="text-2xl font-bold text-foreground">{value}</p>
     </div>
   </div>
 );

@@ -322,7 +322,7 @@ export default function IMSPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900 font-sans">
+    <div className="flex min-h-screen flex-col md:flex-row bg-background text-foreground font-sans">
       <Sidebar view={view} setView={setView} />
 
       <main className="flex-1 flex flex-col overflow-hidden">
@@ -334,7 +334,7 @@ export default function IMSPage() {
           onAddItem={handleHeaderAction} 
         />
 
-        <div className="p-8 flex-1 overflow-auto">
+        <div className="p-4 md:p-8 flex-1 overflow-auto">
           {view !== 'categories' && (
             <Controls 
               searchTerm={searchTerm} 
@@ -348,7 +348,7 @@ export default function IMSPage() {
             />
           )}
 
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
             {view === 'inventory' ? (
               <>
                 <InventoryTable 

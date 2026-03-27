@@ -10,40 +10,46 @@ interface SidebarProps {
 
 export const Sidebar = ({ view, setView }: SidebarProps) => {
   return (
-    <aside className="w-64 bg-slate-900 text-white flex flex-col hidden md:flex">
-      <div className="p-6 flex items-center gap-3">
-        <div className="bg-indigo-600 p-2 rounded-lg">
+    <aside className="w-full md:w-64 bg-sidebar text-sidebar-foreground flex flex-col">
+      <div className="px-6 py-5 border-b border-sidebar-border flex items-center gap-3">
+        <div className="bg-sidebar-primary text-sidebar-primary-foreground p-2 rounded-2xl">
           <Package className="w-6 h-6" />
         </div>
-        <span className="text-xl font-bold tracking-tight">Blue Collar</span>
+        <span className="text-xl font-semibold tracking-tight">Blue Collar</span>
       </div>
-      
-      <nav className="flex-1 px-4 py-6 space-y-2">
-        <button 
+
+      <nav className="flex flex-wrap md:flex-col gap-2 p-4">
+        <button
           onClick={() => setView('inventory')}
           className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium",
-            view === 'inventory' ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white hover:bg-slate-800"
+            'flex-1 md:flex-none w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition',
+            view === 'inventory'
+              ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+              : 'text-sidebar-foreground/80 hover:text-sidebar-primary-foreground hover:bg-sidebar-accent'
           )}
         >
           <LayoutDashboard className="w-5 h-5" />
           Inventory
         </button>
-        <button 
+        <button
           onClick={() => setView('sales')}
           className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium",
-            view === 'sales' ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white hover:bg-slate-800"
+            'flex-1 md:flex-none w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition',
+            view === 'sales'
+              ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+              : 'text-sidebar-foreground/80 hover:text-sidebar-primary-foreground hover:bg-sidebar-accent'
           )}
         >
           <ShoppingCart className="w-5 h-5" />
           Sales
         </button>
-        <button 
+        <button
           onClick={() => setView('categories')}
           className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium",
-            view === 'categories' ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white hover:bg-slate-800"
+            'flex-1 md:flex-none w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition',
+            view === 'categories'
+              ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+              : 'text-sidebar-foreground/80 hover:text-sidebar-primary-foreground hover:bg-sidebar-accent'
           )}
         >
           <List className="w-5 h-5" />
@@ -51,10 +57,10 @@ export const Sidebar = ({ view, setView }: SidebarProps) => {
         </button>
       </nav>
 
-      <div className="p-4 border-t border-slate-800">
-        <button 
+      <div className="mt-auto px-4 py-5 border-t border-sidebar-border">
+        <button
           onClick={() => signOut()}
-          className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white transition-colors text-sm"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm text-sidebar-foreground/80 hover:text-sidebar-primary-foreground hover:bg-sidebar-accent transition"
         >
           <LogOut className="w-5 h-5" />
           Sign Out

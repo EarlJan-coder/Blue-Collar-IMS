@@ -25,29 +25,29 @@ export const AddItemModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900">{isEditing ? 'Edit Item' : 'Add New Inventory Item'}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+      <div className="bg-card rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-border">
+          <h3 className="text-lg font-bold text-foreground">{isEditing ? 'Edit Item' : 'Add New Inventory Item'}</h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X className="w-5 h-5" />
           </button>
         </div>
         
         <form onSubmit={onSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Item Name</label>
+            <label className="block text-sm font-semibold text-muted-foreground mb-1">Item Name</label>
             <input 
               required
               type="text" 
               value={newItem.name}
               onChange={e => setNewItem({...newItem, name: e.target.value})}
               placeholder="e.g. Wireless Mouse"
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900"
+              className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Category</label>
+            <label className="block text-sm font-semibold text-muted-foreground mb-1">Category</label>
             <select 
               value={newItem.categoryId || ''}
               onChange={e => {
@@ -59,16 +59,16 @@ export const AddItemModal = ({
                 });
               }}
               required
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white text-slate-900"
+              className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="" disabled>Select a category</option>
               {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Stock</label>
+              <label className="block text-sm font-semibold text-muted-foreground mb-1">Stock</label>
               <input 
                 required
                 type="number" 
@@ -76,11 +76,11 @@ export const AddItemModal = ({
                 value={newItem.stock}
                 onChange={e => setNewItem({...newItem, stock: e.target.value})}
                 placeholder="0"
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900"
+                className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Unit Price ($)</label>
+              <label className="block text-sm font-semibold text-muted-foreground mb-1">Unit Price ($)</label>
               <input 
                 required
                 type="number" 
@@ -89,22 +89,22 @@ export const AddItemModal = ({
                 value={newItem.price}
                 onChange={e => setNewItem({...newItem, price: e.target.value})}
                 placeholder="0.00"
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900"
+                className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
           </div>
 
-          <div className="pt-4 flex gap-3">
+          <div className="pt-4 flex flex-col gap-3 sm:flex-row">
             <button 
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+              className="w-full sm:flex-1 px-4 py-3 border border-border text-muted-foreground font-semibold rounded-2xl hover:bg-popover/80 transition"
             >
               Cancel
             </button>
             <button 
               type="submit"
-              className="flex-1 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+              className="w-full sm:flex-1 px-4 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition shadow-sm"
             >
               {isEditing ? 'Update Item' : 'Create SKU & Add'}
             </button>
