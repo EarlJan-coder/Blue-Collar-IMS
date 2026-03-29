@@ -131,7 +131,14 @@ export default function IMSPage() {
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
   if (status === 'loading') {
-    return <div className="p-8">Loading...</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center p-8">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 rounded-full border-4 border-slate-200 border-t-blue-600 animate-spin" />
+          <span className="text-sm text-slate-600">Loading</span>
+        </div>
+      </div>
+    );
   }
 
   if (!session) {

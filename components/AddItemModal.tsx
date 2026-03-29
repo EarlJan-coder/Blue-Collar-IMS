@@ -80,7 +80,7 @@ export const AddItemModal = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-muted-foreground mb-1">Unit Price ($)</label>
+              <label className="block text-sm font-semibold text-muted-foreground mb-1">P</label>
               <input 
                 required
                 type="number" 
