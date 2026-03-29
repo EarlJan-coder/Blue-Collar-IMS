@@ -37,7 +37,7 @@ export const InventoryTable = ({ items, onEdit, onDelete }: InventoryTableProps)
                   )}
                 </div>
               </td>
-              <td className="px-6 py-4 text-sm text-muted-foreground">${item.unitPrice.toLocaleString()}</td>
+              <td className="px-6 py-4 text-sm text-muted-foreground">₱{item.unitPrice.toLocaleString()}</td>
               <td className="px-6 py-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <button
