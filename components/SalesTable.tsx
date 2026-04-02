@@ -33,7 +33,7 @@ export const SalesTable = ({ sales, onDelete, onUpdate }: SalesTableProps) => {
               <td className="px-6 py-4 text-sm font-medium text-foreground">{sale.itemName}</td>
               <td className="px-6 py-4 text-sm text-muted-foreground">{sale.category}</td>
               <td className="px-6 py-4 text-sm font-semibold text-foreground">{sale.quantity}</td>
-              <td className="px-6 py-4 text-sm font-bold text-primary-foreground">${sale.totalPrice.toLocaleString()}</td>
+              <td className="px-6 py-4 text-sm font-bold text-primary-foreground">₱{sale.totalPrice.toLocaleString()}</td>
               {showActions && (
                 <td className="px-6 py-4 text-sm space-x-2">
                   {onUpdate && (
