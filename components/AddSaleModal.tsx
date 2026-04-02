@@ -52,7 +52,7 @@ export const AddSaleModal = ({
               <option value="" disabled>Select an item</option>
               {items.map(item => (
                 <option key={item.id} value={item.id}>
-                  {item.name} (Stock: {item.stockQuantity}) - ${item.unitPrice}
+                  {item.name} (Stock: {item.stockQuantity}) - ₱{item.unitPrice}
                 </option>
               ))}
             </select>
