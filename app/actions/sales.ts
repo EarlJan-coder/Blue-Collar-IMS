@@ -122,8 +122,14 @@ export async function createSale(data: {
  * Deletes a sale and restores the item stock.
  */
 export async function deleteSale(saleId: string) {
+  const session = (await getServerSession(authOptions)) as Session | null;
+  const userId = session?.user?.id;
+  if (!userId) {
+    throw new Error('Unauthorized');
+  }
+
   try {
-    // First, fetch the sale details
+    // First, fetch the sale details scoped to the signed-in user
     const saleResult = await db
       .select({
         id: sales.id,
@@ -131,7 +137,7 @@ export async function deleteSale(saleId: string) {
         quantitySold: sales.quantitySold,
       })
       .from(sales)
-      .where(eq(sales.id, saleId));
+      .where(and(eq(sales.id, saleId), eq(sales.userId, userId)));
 
     if (saleResult.length === 0) {
       throw new Error('Sale not found');
@@ -141,7 +147,7 @@ export async function deleteSale(saleId: string) {
 
     // Fetch the item to get current stock
     const item = await db.query.items.findFirst({
-      where: eq(items.id, sale.itemId),
+      where: and(eq(items.id, sale.itemId), eq(items.userId, userId)),
     });
 
     if (!item) {
@@ -149,15 +155,70 @@ export async function deleteSale(saleId: string) {
     }
 
     // 1. Delete the sale record
-    await db.delete(sales).where(eq(sales.id, saleId));
+    await db.delete(sales).where(and(eq(sales.id, saleId), eq(sales.userId, userId)));
 
     // 2. Restore item stock
     await db.update(items)
       .set({ stockQuantity: item.stockQuantity + sale.quantitySold })
-      .where(eq(items.id, sale.itemId));
+      .where(and(eq(items.id, sale.itemId), eq(items.userId, userId)));
 
     revalidatePath('/');
   } catch (error) {
     throw new Error(`Failed to delete sale: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Updates a sale quantity and adjusts stock accordingly.
+ */
+export async function updateSale(saleId: string, data: { quantitySold: number }) {
+  const session = (await getServerSession(authOptions)) as Session | null;
+  const userId = session?.user?.id;
+  if (!userId) {
+    throw new Error('Unauthorized');
+  }
+
+  try {
+    const sale = await db.query.sales.findFirst({
+      where: and(eq(sales.id, saleId), eq(sales.userId, userId)),
+    });
+
+    if (!sale) {
+      throw new Error('Sale not found');
+    }
+
+    const item = await db.query.items.findFirst({
+      where: and(eq(items.id, sale.itemId), eq(items.userId, userId)),
+    });
+
+    if (!item) {
+      throw new Error('Item not found');
+    }
+
+    const newQuantity = data.quantitySold;
+    const quantityDiff = newQuantity - sale.quantitySold;
+
+    if (quantityDiff > 0 && item.stockQuantity < quantityDiff) {
+      throw new Error('Insufficient stock to increase sale quantity');
+    }
+
+    const totalPrice = (parseFloat(item.sellingPrice) * newQuantity).toFixed(2);
+    const totalProfit = ((parseFloat(item.sellingPrice) - parseFloat(item.baseCost)) * newQuantity).toFixed(2);
+
+    await db.update(sales)
+      .set({
+        quantitySold: newQuantity,
+        totalPrice,
+        totalProfit,
+      })
+      .where(and(eq(sales.id, saleId), eq(sales.userId, userId)));
+
+    await db.update(items)
+      .set({ stockQuantity: item.stockQuantity - quantityDiff })
+      .where(and(eq(items.id, item.id), eq(items.userId, userId)));
+
+    revalidatePath('/');
+  } catch (error) {
+    throw new Error(`Failed to update sale: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
