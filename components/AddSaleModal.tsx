@@ -82,7 +82,7 @@ export const AddSaleModal = ({
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Total Price:</span>
                 <span className="font-bold text-primary-foreground">
-                  ${(selectedItem.unitPrice * parseInt(newSale.quantity || '0')).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  ₱{(selectedItem.unitPrice * parseInt(newSale.quantity || '0')).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
             </div>
