@@ -25,7 +25,7 @@ import { AddSaleModal } from '../components/AddSaleModal';
 // --- Actions ---
 import { getItems, createItem, updateItem, deleteItem } from './actions/items';
 import { getCategories, createCategory, updateCategory, deleteCategory } from './actions/categories';
-import { getSales, createSale } from './actions/sales';
+import { getSales, createSale, updateSale, deleteSale } from './actions/sales';
 
 export default function IMSPage() {
   const [view, setView] = useState<'inventory' | 'sales' | 'categories'>('inventory');
@@ -60,6 +60,16 @@ export default function IMSPage() {
     itemId: '',
     quantity: '1'
   });
+  const [isSaleEditing, setIsSaleEditing] = useState(false);
+  const [editingSaleId, setEditingSaleId] = useState<string | null>(null);
+
+  const saleEditMaxQuantity = useMemo(() => {
+    if (!isSaleEditing || !editingSaleId) return undefined;
+    const sale = sales.find(s => s.id === editingSaleId);
+    const item = items.find(i => i.id === sale?.itemId);
+    if (!sale || !item) return undefined;
+    return item.stockQuantity + sale.quantity;
+  }, [isSaleEditing, editingSaleId, sales, items]);
 
   const { data: session, status } = useSession();
 
@@ -158,6 +168,29 @@ export default function IMSPage() {
   }
 
   // Actions
+  const refreshItemsAndSales = async () => {
+    const [dbItems, dbSales] = await Promise.all([getItems(), getSales()]);
+
+    setItems(dbItems.map(item => ({
+      id: item.id,
+      name: item.name,
+      category: item.category.name,
+      sku: item.sku,
+      stockQuantity: item.stockQuantity,
+      unitPrice: parseFloat(item.sellingPrice)
+    })));
+
+    setSales(dbSales.map(sale => ({
+      id: sale.id,
+      itemId: sale.itemId,
+      itemName: sale.item.name,
+      category: sale.item.category.name,
+      quantity: sale.quantitySold,
+      totalPrice: parseFloat(sale.totalPrice),
+      date: new Date(sale.createdAt).toLocaleDateString()
+    })));
+  };
+
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -249,41 +282,63 @@ export default function IMSPage() {
     setEditingCategory(null);
   };
 
-  const handleAddSale = async (e: React.FormEvent) => {
+  const handleSaveSale = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      if (isSaleEditing && editingSaleId) {
+        await updateSale(editingSaleId, { quantitySold: parseInt(newSale.quantity) });
+      } else {
         await createSale({
-            itemId: newSale.itemId,
-            quantitySold: parseInt(newSale.quantity)
+          itemId: newSale.itemId,
+          quantitySold: parseInt(newSale.quantity)
         });
+      }
 
-        // Refresh items and sales
-        const [dbItems, dbSales] = await Promise.all([getItems(), getSales()]);
-        
-        setItems(dbItems.map(item => ({
-            id: item.id,
-            name: item.name,
-            category: item.category.name,
-            sku: item.sku,
-            stockQuantity: item.stockQuantity,
-            unitPrice: parseFloat(item.sellingPrice)
-        })));
-
-        setSales(dbSales.map(sale => ({
-            id: sale.id,
-            itemId: sale.itemId,
-            itemName: sale.item.name,
-            category: sale.item.category.name,
-            quantity: sale.quantitySold,
-            totalPrice: parseFloat(sale.totalPrice),
-            date: new Date(sale.createdAt).toLocaleDateString()
-        })));
-
-        setIsSaleModalOpen(false);
-        setNewSale({ itemId: '', quantity: '1' });
+      await refreshItemsAndSales();
+      setIsSaleModalOpen(false);
+      setNewSale({ itemId: '', quantity: '1' });
+      setIsSaleEditing(false);
+      setEditingSaleId(null);
     } catch (error) {
-        alert(error instanceof Error ? error.message : 'Failed to record sale');
+      alert(error instanceof Error ? error.message : 'Failed to save sale');
     }
+  };
+
+  const handleDeleteSale = async (saleId: string) => {
+    if (!confirm('Are you sure you want to delete this sale? This will restore item stock.')) {
+      return;
+    }
+
+    try {
+      await deleteSale(saleId);
+      const [dbItems, dbSales] = await Promise.all([getItems(), getSales()]);
+      setItems(dbItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        category: item.category.name,
+        sku: item.sku,
+        stockQuantity: item.stockQuantity,
+        unitPrice: parseFloat(item.sellingPrice)
+      })));
+      setSales(dbSales.map(sale => ({
+        id: sale.id,
+        itemId: sale.itemId,
+        itemName: sale.item.name,
+        category: sale.item.category.name,
+        quantity: sale.quantitySold,
+        totalPrice: parseFloat(sale.totalPrice),
+        date: new Date(sale.createdAt).toLocaleDateString()
+      })));
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to delete sale');
+    }
+  };
+
+  const handleEditSale = (sale: SaleTransaction) => {
+    setIsSaleEditing(true);
+    setEditingSaleId(sale.id);
+    setNewSale({ itemId: sale.itemId, quantity: sale.quantity.toString() });
+    setIsSaleModalOpen(true);
   };
 
   const handleEditCategoryClick = (category: Category) => {
@@ -324,6 +379,9 @@ export default function IMSPage() {
       setEditingCategory(null);
       setIsCategoryModalOpen(true);
     } else if (view === 'sales') {
+      setIsSaleEditing(false);
+      setEditingSaleId(null);
+      setNewSale({ itemId: '', quantity: '1' });
       setIsSaleModalOpen(true);
     }
   };
@@ -378,7 +436,11 @@ export default function IMSPage() {
                 onDelete={handleDeleteCategory}
               />
             ) : (
-              <SalesTable sales={filteredSales} />
+              <SalesTable 
+                sales={filteredSales} 
+                onDelete={handleDeleteSale} 
+                onUpdate={handleEditSale} 
+              />
             )}
           </div>
         </div>
@@ -406,11 +468,18 @@ export default function IMSPage() {
 
       <AddSaleModal 
         isOpen={isSaleModalOpen}
-        onClose={() => setIsSaleModalOpen(false)}
+        onClose={() => {
+          setIsSaleModalOpen(false);
+          setIsSaleEditing(false);
+          setEditingSaleId(null);
+          setNewSale({ itemId: '', quantity: '1' });
+        }}
         newSale={newSale}
         setNewSale={setNewSale}
-        onSubmit={handleAddSale}
+        onSubmit={handleSaveSale}
         items={items}
+        isEditing={isSaleEditing}
+        maxQuantity={saleEditMaxQuantity}
       />
     </div>
   );
