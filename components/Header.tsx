@@ -33,15 +33,15 @@ export const Header = ({ view, totalItems, lowStockCount, totalSales, onAddItem 
   };
 
   return (
-    <header className="bg-card border-b border-border px-6 py-5 md:px-8 md:py-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
-        <h1 className="text-2xl font-bold text-foreground">{getTitle()}</h1>
+    <header className="bg-card border-b border-border px-4 py-4 md:px-8 md:py-6">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4 md:mb-6">
+        <h1 className="text-xl md:text-2xl font-bold text-foreground">{getTitle()}</h1>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           <button
             type="button"
             onClick={toggleTheme}
-            className="inline-flex items-center justify-center rounded-2xl border border-border bg-muted p-2 text-sm font-semibold text-foreground shadow-sm transition hover:bg-muted/90"
+            className="inline-flex items-center justify-center rounded-2xl border border-border bg-muted p-2 text-sm font-semibold text-foreground shadow-sm transition hover:bg-muted/90 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
             title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -49,10 +49,10 @@ export const Header = ({ view, totalItems, lowStockCount, totalSales, onAddItem 
 
           <button
             onClick={onAddItem}
-            className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
+            className="inline-flex items-center gap-2 rounded-2xl bg-primary px-3 py-2 md:px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 min-h-[44px]"
           >
             <Plus className="w-4 h-4" />
-            {getButtonText()}
+            <span className="hidden sm:inline">{getButtonText()}</span>
           </button>
         </div>
       </div>

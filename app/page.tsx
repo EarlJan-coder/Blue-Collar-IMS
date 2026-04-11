@@ -18,6 +18,7 @@ import { InventoryTable } from '../components/InventoryTable';
 import { SalesTable } from '../components/SalesTable';
 import { CategoryTable } from '../components/CategoryTable';
 import { Pagination } from '../components/Pagination';
+import { MobileBottomNav } from '../components/MobileBottomNav';
 import { AddItemModal } from '../components/AddItemModal';
 import { AddCategoryModal } from '../components/AddCategoryModal';
 import { AddSaleModal } from '../components/AddSaleModal';
@@ -390,25 +391,25 @@ export default function IMSPage() {
     <div className="flex min-h-screen flex-col md:flex-row bg-background text-foreground font-sans">
       <Sidebar view={view} setView={setView} />
 
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <Header 
-          view={view} 
-          totalItems={totalItems} 
-          lowStockCount={lowStockCount} 
-          totalSales={totalSalesAmount} 
-          onAddItem={handleHeaderAction} 
+      <main className="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
+        <Header
+          view={view}
+          totalItems={totalItems}
+          lowStockCount={lowStockCount}
+          totalSales={totalSalesAmount}
+          onAddItem={handleHeaderAction}
         />
 
-        <div className="p-4 md:p-8 flex-1 overflow-auto">
+        <div className="p-3 md:p-8 flex-1 overflow-auto">
           {view !== 'categories' && (
-            <Controls 
-              searchTerm={searchTerm} 
-              setSearchTerm={setSearchTerm} 
-              categoryFilter={categoryFilter} 
+            <Controls
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              categoryFilter={categoryFilter}
               setCategoryFilter={(cat) => {
                 setCategoryFilter(cat);
                 setCurrentPage(1);
-              }} 
+              }}
               categories={categories}
             />
           )}
@@ -416,35 +417,37 @@ export default function IMSPage() {
           <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
             {view === 'inventory' ? (
               <>
-                <InventoryTable 
-                  items={paginatedItems} 
+                <InventoryTable
+                  items={paginatedItems}
                   onEdit={handleEditClick}
                   onDelete={handleDeleteItem}
                 />
-                <Pagination 
-                  currentPage={currentPage} 
-                  totalPages={totalPages} 
-                  itemsPerPage={itemsPerPage} 
-                  totalFilteredItems={filteredItems.length} 
-                  setCurrentPage={setCurrentPage} 
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  itemsPerPage={itemsPerPage}
+                  totalFilteredItems={filteredItems.length}
+                  setCurrentPage={setCurrentPage}
                 />
               </>
             ) : view === 'categories' ? (
-              <CategoryTable 
+              <CategoryTable
                 categories={categories}
                 onEdit={handleEditCategoryClick}
                 onDelete={handleDeleteCategory}
               />
             ) : (
-              <SalesTable 
-                sales={filteredSales} 
-                onDelete={handleDeleteSale} 
-                onUpdate={handleEditSale} 
+              <SalesTable
+                sales={filteredSales}
+                onDelete={handleDeleteSale}
+                onUpdate={handleEditSale}
               />
             )}
           </div>
         </div>
       </main>
+
+      <MobileBottomNav view={view} setView={setView} />
 
       <AddItemModal 
         isOpen={isModalOpen} 
