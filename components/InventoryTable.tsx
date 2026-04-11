@@ -28,7 +28,7 @@ export const InventoryTable = ({ items, onEdit, onDelete }: InventoryTableProps)
             <tr key={item.id} className="hover:bg-muted/30 transition-colors">
               <td className="px-6 py-4 text-sm font-medium text-foreground">{item.name}</td>
               <td className="px-6 py-4 text-sm text-muted-foreground">{item.category}</td>
-              <td className="px-6 py-4 text-sm font-mono text-primary-foreground">{item.sku}</td>
+              <td className="px-6 py-4 text-sm font-mono text-foreground">{item.sku}</td>
               <td className="px-6 py-4 text-sm">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-foreground">{item.stockQuantity}</span>

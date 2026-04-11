@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import { InventoryItem, NewSale } from '../app/types';
 
@@ -23,6 +23,18 @@ export const AddSaleModal = ({
   isEditing = false,
   maxQuantity,
 }: AddSaleModalProps) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredItems = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) return items;
+
+    return items.filter(item =>
+      item.name.toLowerCase().includes(query) ||
+      item.sku.toLowerCase().includes(query)
+    );
+  }, [items, searchTerm]);
+
   if (!isOpen) return null;
 
   const selectedItem = items.find(item => item.id === newSale.itemId);
@@ -40,6 +52,19 @@ export const AddSaleModal = ({
         </div>
         
         <form onSubmit={onSubmit} className="p-6 space-y-4">
+          {!isEditing && (
+            <div>
+              <label className="block text-sm font-semibold text-muted-foreground mb-1">Search Item</label>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="Search by name or SKU"
+                className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-semibold text-muted-foreground mb-1">Select Item</label>
             <select 
@@ -50,11 +75,15 @@ export const AddSaleModal = ({
               className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-70"
             >
               <option value="" disabled>Select an item</option>
-              {items.map(item => (
-                <option key={item.id} value={item.id}>
-                  {item.name} (Stock: {item.stockQuantity}) - ₱{item.unitPrice}
-                </option>
-              ))}
+              {filteredItems.length > 0 ? (
+                filteredItems.map(item => (
+                  <option key={item.id} value={item.id}>
+                    {item.name} (Stock: {item.stockQuantity}) - ₱{item.unitPrice}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>No items match your search</option>
+              )}
             </select>
           </div>
 
