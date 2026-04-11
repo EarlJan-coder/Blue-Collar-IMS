@@ -10,7 +10,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ view, setView }: SidebarProps) => {
   return (
-    <aside className="w-full md:w-64 bg-sidebar text-sidebar-foreground flex flex-col">
+    <aside className="hidden md:flex w-64 bg-sidebar text-sidebar-foreground flex-col">
       <div className="px-6 py-5 border-b border-sidebar-border flex items-center gap-3">
         <div className="bg-sidebar-primary text-sidebar-primary-foreground p-2 rounded-2xl">
           <Package className="w-6 h-6" />

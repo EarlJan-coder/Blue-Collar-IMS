@@ -12,7 +12,7 @@ interface ControlsProps {
 
 export const Controls = ({ searchTerm, setSearchTerm, categoryFilter, setCategoryFilter, categories }: ControlsProps) => {
   return (
-    <div className="flex flex-col gap-4 mb-6 sm:flex-row">
+    <div className="flex flex-col gap-3 mb-4 md:mb-6 sm:flex-row">
       <div className="relative flex-1 min-w-0">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <input
@@ -20,15 +20,15 @@ export const Controls = ({ searchTerm, setSearchTerm, categoryFilter, setCategor
           placeholder="Search by name or SKU..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 border border-border rounded-2xl bg-popover text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+          className="w-full pl-10 pr-4 py-3 border border-border rounded-2xl bg-popover text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent min-h-[44px]"
         />
       </div>
-      <div className="relative min-w-[220px] w-full sm:w-auto">
+      <div className="relative min-w-[200px] w-full sm:w-auto md:min-w-[220px]">
         <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="w-full pl-10 pr-8 py-3 border border-border rounded-2xl bg-popover text-foreground text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full pl-10 pr-8 py-3 border border-border rounded-2xl bg-popover text-foreground text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]"
         >
           <option value="All">All Categories</option>
           {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}

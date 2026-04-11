@@ -110,7 +110,7 @@ export const AddSaleModal = ({
             <div className="p-3 bg-popover rounded-2xl">
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Total Price:</span>
-                <span className="font-bold text-primary-foreground">
+                <span className="px-6 py-4 text-sm font-mono text-foreground">
                   ₱{(selectedItem.unitPrice * parseInt(newSale.quantity || '0')).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
