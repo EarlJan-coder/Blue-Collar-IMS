@@ -20,21 +20,6 @@ interface SalesChartProps {
 
 export const SalesChart = ({ data }: SalesChartProps) => {
   const chartData = useMemo(() => {
-    if (data.length === 0) {
-      // Generate sample data for demonstration
-      const sampleData = [];
-      const today = new Date();
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        sampleData.push({
-          date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          sales: Math.floor(Math.random() * 15) + 5,
-          revenue: Math.floor(Math.random() * 2000) + 500,
-        });
-      }
-      return sampleData;
-    }
     return data;
   }, [data]);
 

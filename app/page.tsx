@@ -165,25 +165,6 @@ export default function IMSPage() {
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [sales]);
 
-  const inventoryData = useMemo(() => {
-    // Group items by category
-    const groupedByCategory: { [key: string]: number } = {};
-    
-    items.forEach(item => {
-      if (!groupedByCategory[item.category]) {
-        groupedByCategory[item.category] = 0;
-      }
-      groupedByCategory[item.category] += item.stockQuantity;
-    });
-
-    return Object.entries(groupedByCategory)
-      .map(([category, count]) => ({
-        category,
-        count
-      }))
-      .sort((a, b) => b.count - a.count);
-  }, [items]);
-
   if (status === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center p-8">
@@ -492,7 +473,6 @@ export default function IMSPage() {
               totalSalesRevenue={totalSalesAmount}
               totalSalesCount={totalSalesCount}
               salesData={salesData}
-              inventoryData={inventoryData}
             />
           ) : (
             <>

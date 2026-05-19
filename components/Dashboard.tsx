@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { MetricCard } from './MetricCard';
 import { SalesChart } from './SalesChart';
-import { InventoryChart } from './InventoryChart';
 
 interface DashboardProps {
   totalItems: number;
@@ -17,7 +16,6 @@ interface DashboardProps {
   totalSalesRevenue: number;
   totalSalesCount: number;
   salesData?: Array<{ date: string; sales: number; revenue: number }>;
-  inventoryData?: Array<{ category: string; count: number }>;
 }
 
 export const Dashboard = ({
@@ -26,7 +24,6 @@ export const Dashboard = ({
   totalSalesRevenue,
   totalSalesCount,
   salesData = [],
-  inventoryData = [],
 }: DashboardProps) => {
   return (
     <div className="space-y-6">
@@ -59,15 +56,10 @@ export const Dashboard = ({
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Sales Chart - Takes up 2 columns on large screens */}
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 gap-6">
+        {/* Sales Chart - Full width */}
+        <div className="w-full">
           <SalesChart data={salesData} />
-        </div>
-
-        {/* Inventory Chart - Takes up 1 column */}
-        <div className="lg:col-span-1">
-          <InventoryChart data={inventoryData} />
         </div>
       </div>
     </div>
