@@ -11,6 +11,7 @@ interface AddSaleModalProps {
   items: InventoryItem[];
   isEditing?: boolean;
   maxQuantity?: number;
+  isLoading?: boolean;
 }
 
 export const AddSaleModal = ({ 
@@ -22,6 +23,7 @@ export const AddSaleModal = ({
   items,
   isEditing = false,
   maxQuantity,
+  isLoading = false,
 }: AddSaleModalProps) => {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -46,46 +48,65 @@ export const AddSaleModal = ({
           <h3 className="text-lg font-bold text-foreground">
             {isEditing ? 'Update Sale' : 'Record New Sale'}
           </h3>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+          <button disabled={isLoading} onClick={onClose} className="text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed">
             <X className="w-5 h-5" />
           </button>
         </div>
-        
         <form onSubmit={onSubmit} className="p-6 space-y-4">
-          {!isEditing && (
-            <div>
-              <label className="block text-sm font-semibold text-muted-foreground mb-1">Search Item</label>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                placeholder="Search by name or SKU"
-                className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              />
+          {!isEditing ? (
+            <>
+              <div>
+                <label className="block text-sm font-semibold text-muted-foreground mb-1">Search Item</label>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  placeholder="Search by name or SKU"
+                  disabled={isLoading}
+                  className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-muted-foreground mb-1">Search Results</label>
+                <div className="max-h-60 overflow-y-auto rounded-2xl border border-border bg-popover">
+                  {filteredItems.length > 0 ? (
+                    filteredItems.map(item => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setNewSale({...newSale, itemId: item.id})}
+                        disabled={isLoading}
+                        className={`w-full text-left px-4 py-3 border-b last:border-b-0 transition ${newSale.itemId === item.id ? 'bg-primary/10 text-primary' : 'hover:bg-accent/50'} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+                      >
+                        <div className="flex justify-between items-center gap-2">
+                          <span>{item.name}</span>
+                          <span className="text-xs text-muted-foreground">Stock: {item.stockQuantity}</span>
+                        </div>
+                        <div className="mt-1 text-sm text-muted-foreground">
+                          {item.sku} · ₱{item.unitPrice}
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="p-4 text-sm text-muted-foreground">No items match your search.</div>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="rounded-2xl border border-border bg-popover p-4">
+              <p className="text-sm font-semibold text-foreground mb-2">Item</p>
+              {selectedItem ? (
+                <div>
+                  <p className="text-sm font-medium">{selectedItem.name}</p>
+                  <p className="text-sm text-muted-foreground">SKU: {selectedItem.sku}</p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No item selected.</p>
+              )}
             </div>
           )}
-
-          <div>
-            <label className="block text-sm font-semibold text-muted-foreground mb-1">Select Item</label>
-            <select 
-              value={newSale.itemId}
-              onChange={e => setNewSale({...newSale, itemId: e.target.value})}
-              required
-              disabled={isEditing}
-              className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              <option value="" disabled>Select an item</option>
-              {filteredItems.length > 0 ? (
-                filteredItems.map(item => (
-                  <option key={item.id} value={item.id}>
-                    {item.name} (Stock: {item.stockQuantity}) - ₱{item.unitPrice}
-                  </option>
-                ))
-              ) : (
-                <option value="" disabled>No items match your search</option>
-              )}
-            </select>
-          </div>
 
           <div>
             <label className="block text-sm font-semibold text-muted-foreground mb-1">Quantity Sold</label>
@@ -97,7 +118,8 @@ export const AddSaleModal = ({
               value={newSale.quantity}
               onChange={e => setNewSale({...newSale, quantity: e.target.value})}
               placeholder="1"
-              className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              disabled={isLoading}
+              className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
             />
             {selectedItem && (
               <p className="mt-1 text-xs text-muted-foreground">
@@ -121,16 +143,17 @@ export const AddSaleModal = ({
             <button 
               type="button"
               onClick={onClose}
-              className="w-full sm:flex-1 px-4 py-3 border border-border text-muted-foreground font-semibold rounded-2xl hover:bg-popover/80 transition"
+              disabled={isLoading}
+              className="w-full sm:flex-1 px-4 py-3 border border-border text-muted-foreground font-semibold rounded-2xl hover:bg-popover/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button 
               type="submit"
-              className="w-full sm:flex-1 px-4 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition shadow-sm"
-              disabled={!selectedItem || !newSale.quantity || parseInt(newSale.quantity) > (maxQuantity ?? selectedItem.stockQuantity)}
+              disabled={isLoading || !selectedItem || !newSale.quantity || parseInt(newSale.quantity) > (maxQuantity ?? selectedItem.stockQuantity)}
+              className="w-full sm:flex-1 px-4 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isEditing ? 'Update Sale' : 'Record Sale'}
+              {isLoading ? (isEditing ? 'Updating...' : 'Recording...') : (isEditing ? 'Update Sale' : 'Record Sale')}
             </button>
           </div>
         </form>

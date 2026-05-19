@@ -6,9 +6,10 @@ interface SalesTableProps {
   sales: SaleTransaction[];
   onDelete?: (saleId: string) => void;
   onUpdate?: (sale: SaleTransaction) => void;
+  isLoading?: boolean;
 }
 
-export const SalesTable = ({ sales, onDelete, onUpdate }: SalesTableProps) => {
+export const SalesTable = ({ sales, onDelete, onUpdate, isLoading = false }: SalesTableProps) => {
   const showActions = Boolean(onDelete || onUpdate);
 
   return (
@@ -33,14 +34,15 @@ export const SalesTable = ({ sales, onDelete, onUpdate }: SalesTableProps) => {
               <td className="px-6 py-4 text-sm font-medium text-foreground">{sale.itemName}</td>
               <td className="px-6 py-4 text-sm text-muted-foreground">{sale.category}</td>
               <td className="px-6 py-4 text-sm font-semibold text-foreground">{sale.quantity}</td>
-              <td className="px-6 py-4 text-sm font-bold text-primary-foreground">₱{sale.totalPrice.toLocaleString()}</td>
+              <td className="px-6 py-4 text-sm font-bold text-black dark:text-white">₱{sale.totalPrice.toLocaleString()}</td>
               {showActions && (
                 <td className="px-6 py-4 text-sm space-x-2">
                   {onUpdate && (
                     <button
                       type="button"
                       onClick={() => onUpdate(sale)}
-                      className="p-2 text-muted-foreground hover:text-primary-foreground transition-colors"
+                      disabled={isLoading}
+                      className="p-2 text-muted-foreground hover:text-primary-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Edit Item"
                   >
                     <Edit2 className="w-4 h-4" />
@@ -50,7 +52,8 @@ export const SalesTable = ({ sales, onDelete, onUpdate }: SalesTableProps) => {
                     <button
                       type="button"
                       onClick={() => onDelete(sale.id)}
-                     className="p-2 text-muted-foreground hover:text-destructive-foreground transition-colors"
+                      disabled={isLoading}
+                      className="p-2 text-muted-foreground hover:text-destructive-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Delete Item"
                   >
                     <Trash2 className="w-4 h-4" />

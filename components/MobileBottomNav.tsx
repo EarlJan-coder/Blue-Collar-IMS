@@ -3,14 +3,26 @@ import { LayoutDashboard, ShoppingCart, List } from 'lucide-react';
 import { cn } from '../app/lib/utils';
 
 interface MobileBottomNavProps {
-  view: 'inventory' | 'sales' | 'categories';
-  setView: (view: 'inventory' | 'sales' | 'categories') => void;
+  view: 'dashboard' | 'inventory' | 'sales' | 'categories';
+  setView: (view: 'dashboard' | 'inventory' | 'sales' | 'categories') => void;
 }
 
 export const MobileBottomNav = ({ view, setView }: MobileBottomNavProps) => {
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border safe-area-inset-bottom">
       <div className="flex">
+        <button
+          onClick={() => setView('dashboard')}
+          className={cn(
+            'flex-1 flex flex-col items-center justify-center py-3 px-2 text-xs font-medium transition-colors',
+            view === 'dashboard'
+              ? 'text-primary'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <LayoutDashboard className="w-5 h-5 mb-1" />
+          Dashboard
+        </button>
         <button
           onClick={() => setView('inventory')}
           className={cn(

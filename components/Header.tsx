@@ -6,7 +6,7 @@ import { MetricCard } from './MetricCard';
 import { useTheme } from '../app/providers';
 
 interface HeaderProps {
-  view: 'inventory' | 'sales' | 'categories';
+  view: 'dashboard' | 'inventory' | 'sales' | 'categories';
   totalItems: number;
   lowStockCount: number;
   totalSales: number;
@@ -18,6 +18,7 @@ export const Header = ({ view, totalItems, lowStockCount, totalSales, onAddItem 
 
   const getTitle = () => {
     switch (view) {
+      case 'dashboard': return 'Dashboard';
       case 'inventory': return 'Inventory Management';
       case 'sales': return 'Sales Tracking';
       case 'categories': return 'Category Management';
@@ -26,6 +27,7 @@ export const Header = ({ view, totalItems, lowStockCount, totalSales, onAddItem 
 
   const getButtonText = () => {
     switch (view) {
+      case 'dashboard': return '';
       case 'inventory': return 'Add Item';
       case 'sales': return 'New Sale';
       case 'categories': return 'Add Category';
@@ -50,6 +52,7 @@ export const Header = ({ view, totalItems, lowStockCount, totalSales, onAddItem 
           <button
             onClick={onAddItem}
             className="inline-flex items-center gap-2 rounded-2xl bg-primary px-3 py-2 md:px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 min-h-[44px]"
+            style={{ display: view === 'dashboard' ? 'none' : 'inline-flex' }}
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">{getButtonText()}</span>

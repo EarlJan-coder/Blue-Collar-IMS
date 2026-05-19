@@ -4,8 +4,8 @@ import { cn } from '../app/lib/utils';
 import { signOut } from 'next-auth/react';
 
 interface SidebarProps {
-  view: 'inventory' | 'sales' | 'categories';
-  setView: (view: 'inventory' | 'sales' | 'categories') => void;
+  view: 'dashboard' | 'inventory' | 'sales' | 'categories';
+  setView: (view: 'dashboard' | 'inventory' | 'sales' | 'categories') => void;
 }
 
 export const Sidebar = ({ view, setView }: SidebarProps) => {
@@ -19,6 +19,18 @@ export const Sidebar = ({ view, setView }: SidebarProps) => {
       </div>
 
       <nav className="flex flex-wrap md:flex-col gap-2 p-4">
+        <button
+          onClick={() => setView('dashboard')}
+          className={cn(
+            'flex-1 md:flex-none w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition',
+            view === 'dashboard'
+              ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+              : 'text-sidebar-foreground/80 hover:text-sidebar-primary-foreground hover:bg-sidebar-accent'
+          )}
+        >
+          <LayoutDashboard className="w-5 h-5" />
+          Dashboard
+        </button>
         <button
           onClick={() => setView('inventory')}
           className={cn(

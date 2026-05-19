@@ -6,9 +6,10 @@ interface CategoryTableProps {
   categories: Category[];
   onEdit: (category: Category) => void;
   onDelete: (id: string) => void;
+  isLoading?: boolean;
 }
 
-export const CategoryTable = ({ categories, onEdit, onDelete }: CategoryTableProps) => {
+export const CategoryTable = ({ categories, onEdit, onDelete, isLoading = false }: CategoryTableProps) => {
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[420px] text-left border-separate border-spacing-0">
@@ -26,14 +27,16 @@ export const CategoryTable = ({ categories, onEdit, onDelete }: CategoryTablePro
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => onEdit(category)}
-                    className="p-2 text-muted-foreground hover:text-primary-foreground transition-colors"
+                    disabled={isLoading}
+                    className="p-2 text-muted-foreground hover:text-primary-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Edit Category"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => onDelete(category.id)}
-                    className="p-2 text-muted-foreground hover:text-destructive-foreground transition-colors"
+                    disabled={isLoading}
+                    className="p-2 text-muted-foreground hover:text-destructive-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Delete Category"
                   >
                     <Trash2 className="w-4 h-4" />

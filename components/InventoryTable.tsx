@@ -7,9 +7,10 @@ interface InventoryTableProps {
   items: InventoryItem[];
   onEdit: (item: InventoryItem) => void;
   onDelete: (id: string) => void;
+  isLoading?: boolean;
 }
 
-export const InventoryTable = ({ items, onEdit, onDelete }: InventoryTableProps) => {
+export const InventoryTable = ({ items, onEdit, onDelete, isLoading = false }: InventoryTableProps) => {
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[720px] text-left border-separate border-spacing-0">
@@ -42,14 +43,16 @@ export const InventoryTable = ({ items, onEdit, onDelete }: InventoryTableProps)
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => onEdit(item)}
-                    className="p-2 text-muted-foreground hover:text-primary-foreground transition-colors"
+                    disabled={isLoading}
+                    className="p-2 text-muted-foreground hover:text-primary-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Edit Item"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => onDelete(item.id)}
-                    className="p-2 text-muted-foreground hover:text-destructive-foreground transition-colors"
+                    disabled={isLoading}
+                    className="p-2 text-muted-foreground hover:text-destructive-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Delete Item"
                   >
                     <Trash2 className="w-4 h-4" />

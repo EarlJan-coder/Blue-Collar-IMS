@@ -10,6 +10,7 @@ interface AddItemModalProps {
   onSubmit: (e: React.FormEvent) => void;
   categories: Category[];
   isEditing?: boolean;
+  isLoading?: boolean;
 }
 
 export const AddItemModal = ({ 
@@ -19,7 +20,8 @@ export const AddItemModal = ({
   setNewItem, 
   onSubmit, 
   categories,
-  isEditing = false
+  isEditing = false,
+  isLoading = false
 }: AddItemModalProps) => {
   if (!isOpen) return null;
 
@@ -42,7 +44,8 @@ export const AddItemModal = ({
               value={newItem.name}
               onChange={e => setNewItem({...newItem, name: e.target.value})}
               placeholder="e.g. Wireless Mouse"
-              className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              disabled={isLoading}
+              className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
           
@@ -59,7 +62,8 @@ export const AddItemModal = ({
                 });
               }}
               required
-              className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              disabled={isLoading}
+              className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="" disabled>Select a category</option>
               {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
@@ -76,7 +80,8 @@ export const AddItemModal = ({
                 value={newItem.stock}
                 onChange={e => setNewItem({...newItem, stock: e.target.value})}
                 placeholder="0"
-                className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                disabled={isLoading}
+                className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
             <div>
@@ -89,7 +94,8 @@ export const AddItemModal = ({
                 value={newItem.price}
                 onChange={e => setNewItem({...newItem, price: e.target.value})}
                 placeholder="0.00"
-                className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                disabled={isLoading}
+                className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -98,15 +104,17 @@ export const AddItemModal = ({
             <button 
               type="button"
               onClick={onClose}
-              className="w-full sm:flex-1 px-4 py-3 border border-border text-muted-foreground font-semibold rounded-2xl hover:bg-popover/80 transition"
+              disabled={isLoading}
+              className="w-full sm:flex-1 px-4 py-3 border border-border text-muted-foreground font-semibold rounded-2xl hover:bg-popover/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button 
               type="submit"
-              className="w-full sm:flex-1 px-4 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition shadow-sm"
+              disabled={isLoading}
+              className="w-full sm:flex-1 px-4 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isEditing ? 'Update Item' : 'Create SKU & Add'}
+              {isLoading ? (isEditing ? 'Updating...' : 'Adding...') : (isEditing ? 'Update Item' : 'Create SKU & Add')}
             </button>
           </div>
         </form>

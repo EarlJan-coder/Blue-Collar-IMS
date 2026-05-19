@@ -7,13 +7,15 @@ interface AddCategoryModalProps {
   onClose: () => void;
   onSubmit: (name: string, id?: string) => void;
   category?: Category | null;
+  isLoading?: boolean;
 }
 
 export const AddCategoryModal = ({ 
   isOpen, 
   onClose, 
   onSubmit, 
-  category 
+  category,
+  isLoading = false
 }: AddCategoryModalProps) => {
   const [name, setName] = useState('');
 
@@ -52,7 +54,8 @@ export const AddCategoryModal = ({
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="e.g. Braking System"
-              className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              disabled={isLoading}
+              className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
           
@@ -60,15 +63,17 @@ export const AddCategoryModal = ({
             <button 
               type="button"
               onClick={onClose}
-              className="w-full sm:flex-1 px-4 py-3 border border-border text-muted-foreground font-semibold rounded-2xl hover:bg-popover/80 transition"
+              disabled={isLoading}
+              className="w-full sm:flex-1 px-4 py-3 border border-border text-muted-foreground font-semibold rounded-2xl hover:bg-popover/80 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button 
               type="submit"
-              className="w-full sm:flex-1 px-4 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition shadow-sm"
+              disabled={isLoading}
+              className="w-full sm:flex-1 px-4 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {category ? 'Update Category' : 'Add Category'}
+              {isLoading ? (category ? 'Updating...' : 'Adding...') : (category ? 'Update Category' : 'Add Category')}
             </button>
           </div>
         </form>
