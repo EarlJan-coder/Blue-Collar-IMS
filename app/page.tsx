@@ -572,6 +572,7 @@ export default function IMSPage() {
         setNewSale={setNewSale}
         onSubmit={handleSaveSale}
         items={items}
+        categories={categories}
         isEditing={isSaleEditing}
         maxQuantity={saleEditMaxQuantity}
         isLoading={isActionLoading}
