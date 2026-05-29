@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { X } from 'lucide-react';
-import { InventoryItem, NewSale } from '../app/types';
+import { Category, InventoryItem, NewSale } from '../app/types';
 
 interface AddSaleModalProps {
   isOpen: boolean;
@@ -9,6 +9,7 @@ interface AddSaleModalProps {
   setNewSale: (sale: NewSale) => void;
   onSubmit: (e: React.FormEvent) => void;
   items: InventoryItem[];
+  categories: Category[];
   isEditing?: boolean;
   maxQuantity?: number;
   isLoading?: boolean;
@@ -21,25 +22,38 @@ export const AddSaleModal = ({
   setNewSale, 
   onSubmit, 
   items,
+  categories,
   isEditing = false,
   maxQuantity,
   isLoading = false,
 }: AddSaleModalProps) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All');
 
   const filteredItems = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
-    if (!query) return items;
 
-    return items.filter(item =>
-      item.name.toLowerCase().includes(query) ||
-      item.sku.toLowerCase().includes(query)
-    );
-  }, [items, searchTerm]);
+    return items.filter(item => {
+      const matchesCategory = categoryFilter === 'All' || item.category === categoryFilter;
+      const matchesSearch = !query ||
+        item.name.toLowerCase().includes(query) ||
+        item.sku.toLowerCase().includes(query);
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [items, categoryFilter, searchTerm]);
 
   if (!isOpen) return null;
 
   const selectedItem = items.find(item => item.id === newSale.itemId);
+
+  const handleCategoryFilterChange = (category: string) => {
+    setCategoryFilter(category);
+
+    if (category !== 'All' && selectedItem?.category !== category) {
+      setNewSale({ ...newSale, itemId: '' });
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -55,6 +69,21 @@ export const AddSaleModal = ({
         <form onSubmit={onSubmit} className="p-6 space-y-4">
           {!isEditing ? (
             <>
+              <div>
+                <label className="block text-sm font-semibold text-muted-foreground mb-1">Category</label>
+                <select
+                  value={categoryFilter}
+                  onChange={e => handleCategoryFilterChange(e.target.value)}
+                  disabled={isLoading}
+                  className="w-full px-4 py-3 border border-border rounded-2xl bg-popover text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="All">All Categories</option>
+                  {categories.map(category => (
+                    <option key={category.id} value={category.name}>{category.name}</option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label className="block text-sm font-semibold text-muted-foreground mb-1">Search Item</label>
                 <input
